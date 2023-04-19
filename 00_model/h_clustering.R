@@ -1,8 +1,13 @@
 # Hierarchical Clustering
 
 # Importing the dataset
-dataset = read.csv('Mall_Customers.csv')
-dataset = dataset[4:5]
+dataset <- read.csv("00_data/train.csv")
+head(dataset)
+str(dataset)
+# Some variables I like are SalesPrice(int), YearBuilt(int), YearRemodAdd(int), 
+# OverallQuality(int), OverallCondition(int), Neighborhood(chr), ID(int), 
+# LotArea(int)
+df <- dataset
 
 # Splitting the dataset into the Training set and Test set
 # install.packages('caTools')
