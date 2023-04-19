@@ -1,8 +1,8 @@
 # K-Means Clustering
 
 # Importing the dataset
-dataset = read.csv('mall.csv')
-X = dataset[4:5]
+data = read.csv("00_data/wmd_house.csv")
+X = data[4:5]
 
 # Using the elbow method to find the optimal number of clusters
 set.seed(6)
