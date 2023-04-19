@@ -1,8 +1,9 @@
 # NJIT | DS636.852 Final Project
 <hr>
-<font color = "red">This project was created to explore kaggle dataset [House_Prices](https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques), and to implement Machine Learning techniques using R. The description of the dataset contain the following information:</font>
-
-MSSubClass: Identifies the type of dwelling involved in the sale.	
+This project was created to explore kaggle dataset [House_Prices](https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques), and to implement Machine Learning techniques using R. The description of the dataset contain the following information:
+<br>
+<br>
+<font color = "red">MSSubClass: Identifies the type of dwelling involved in the sale.</font>	
 
         20	1-STORY 1946 & NEWER ALL STYLES
         30	1-STORY 1945 & OLDER
@@ -21,7 +22,7 @@ MSSubClass: Identifies the type of dwelling involved in the sale.
        180	PUD - MULTILEVEL - INCL SPLIT LEV/FOYER
        190	2 FAMILY CONVERSION - ALL STYLES AND AGES
 
-MSZoning: Identifies the general zoning classification of the sale.
+<font color = "red">MSZoning: Identifies the general zoning classification of the sale.</font>
 		
        A	Agriculture
        C	Commercial
@@ -32,43 +33,43 @@ MSZoning: Identifies the general zoning classification of the sale.
        RP	Residential Low Density Park 
        RM	Residential Medium Density
 	
-LotFrontage: Linear feet of street connected to property
+<font color = "red">LotFrontage: Linear feet of street connected to property</font>
 
-LotArea: Lot size in square feet
+<font color = "red">LotArea: Lot size in square feet</font>
 
-Street: Type of road access to property
+<font color = "red">Street: Type of road access to property</font>
 
        Grvl	Gravel	
        Pave	Paved
        	
-Alley: Type of alley access to property
+<font color = "red">Alley: Type of alley access to property</font>
 
        Grvl	Gravel
        Pave	Paved
        NA 	No alley access
 		
-LotShape: General shape of property
+<font color = "red">LotShape: General shape of property</font>
 
        Reg	Regular	
        IR1	Slightly irregular
        IR2	Moderately Irregular
        IR3	Irregular
        
-LandContour: Flatness of the property
+<font color = "red">LandContour: Flatness of the property</font>
 
        Lvl	Near Flat/Level	
        Bnk	Banked - Quick and significant rise from street grade to building
        HLS	Hillside - Significant slope from side to side
        Low	Depression
 		
-Utilities: Type of utilities available
+<font color = "red">Utilities: Type of utilities available</font>
 		
        AllPub	All public Utilities (E,G,W,& S)	
        NoSewr	Electricity, Gas, and Water (Septic Tank)
        NoSeWa	Electricity and Gas Only
        ELO	Electricity only	
 	
-LotConfig: Lot configuration
+<font color = "red">LotConfig: Lot configuration</font>
 
        Inside	Inside lot
        Corner	Corner lot
@@ -76,13 +77,13 @@ LotConfig: Lot configuration
        FR2	Frontage on 2 sides of property
        FR3	Frontage on 3 sides of property
 	
-LandSlope: Slope of property
+<font color = "red">LandSlope: Slope of property</font>
 		
        Gtl	Gentle slope
        Mod	Moderate Slope	
        Sev	Severe Slope
 	
-Neighborhood: Physical locations within Ames city limits
+<font color = "red">Neighborhood: Physical locations within Ames city limits</font>
 
        Blmngtn	Bloomington Heights
        Blueste	Bluestem
@@ -110,7 +111,7 @@ Neighborhood: Physical locations within Ames city limits
        Timber	Timberland
        Veenker	Veenker
 			
-Condition1: Proximity to various conditions
+<font color = "red">Condition1: Proximity to various conditions</font>
 	
        Artery	Adjacent to arterial street
        Feedr	Adjacent to feeder street	
@@ -122,7 +123,7 @@ Condition1: Proximity to various conditions
        RRNe	Within 200' of East-West Railroad
        RRAe	Adjacent to East-West Railroad
 	
-Condition2: Proximity to various conditions (if more than one is present)
+<font color = "red">Condition2: Proximity to various conditions (if more than one is present)</font>
 		
        Artery	Adjacent to arterial street
        Feedr	Adjacent to feeder street	
@@ -134,7 +135,7 @@ Condition2: Proximity to various conditions (if more than one is present)
        RRNe	Within 200' of East-West Railroad
        RRAe	Adjacent to East-West Railroad
 	
-BldgType: Type of dwelling
+<font color = "red">BldgType: Type of dwelling</font>
 		
        1Fam	Single-family Detached	
        2FmCon	Two-family Conversion; originally built as one-family dwelling
@@ -142,7 +143,7 @@ BldgType: Type of dwelling
        TwnhsE	Townhouse End Unit
        TwnhsI	Townhouse Inside Unit
 	
-HouseStyle: Style of dwelling
+<font color = "red">HouseStyle: Style of dwelling</font>
 	
        1Story	One story
        1.5Fin	One and one-half story: 2nd level finished
@@ -153,7 +154,7 @@ HouseStyle: Style of dwelling
        SFoyer	Split Foyer
        SLvl	Split Level
 	
-OverallQual: Rates the overall material and finish of the house
+<font color = "red">OverallQual: Rates the overall material and finish of the house</font>
 
        10	Very Excellent
        9	Excellent
@@ -166,7 +167,7 @@ OverallQual: Rates the overall material and finish of the house
        2	Poor
        1	Very Poor
 	
-OverallCond: Rates the overall condition of the house
+<font color = "red">OverallCond: Rates the overall condition of the house</font>
 
        10	Very Excellent
        9	Excellent
@@ -179,11 +180,11 @@ OverallCond: Rates the overall condition of the house
        2	Poor
        1	Very Poor
 		
-YearBuilt: Original construction date
+<font color = "red">YearBuilt: Original construction date</font>
 
-YearRemodAdd: Remodel date (same as construction date if no remodeling or additions)
+<font color = "red">YearRemodAdd: Remodel date (same as construction date if no remodeling or additions)</font>
 
-RoofStyle: Type of roof
+<font color = "red">RoofStyle: Type of roof</font>
 
        Flat	Flat
        Gable	Gable
@@ -192,7 +193,7 @@ RoofStyle: Type of roof
        Mansard	Mansard
        Shed	Shed
 		
-RoofMatl: Roof material
+<font color = "red">RoofMatl: Roof material</font>
 
        ClyTile	Clay or Tile
        CompShg	Standard (Composite) Shingle
@@ -203,7 +204,7 @@ RoofMatl: Roof material
        WdShake	Wood Shakes
        WdShngl	Wood Shingles
 		
-Exterior1st: Exterior covering on house
+<font color = "red">Exterior1st: Exterior covering on house</font>
 
        AsbShng	Asbestos Shingles
        AsphShn	Asphalt Shingles
@@ -223,7 +224,7 @@ Exterior1st: Exterior covering on house
        Wd Sdng	Wood Siding
        WdShing	Wood Shingles
 	
-Exterior2nd: Exterior covering on house (if more than one material)
+<font color = "red">Exterior2nd: Exterior covering on house (if more than one material)</font>
 
        AsbShng	Asbestos Shingles
        AsphShn	Asphalt Shingles
@@ -243,7 +244,7 @@ Exterior2nd: Exterior covering on house (if more than one material)
        Wd Sdng	Wood Siding
        WdShing	Wood Shingles
 	
-MasVnrType: Masonry veneer type
+<font color = "red">MasVnrType: Masonry veneer type</font>
 
        BrkCmn	Brick Common
        BrkFace	Brick Face
@@ -251,9 +252,9 @@ MasVnrType: Masonry veneer type
        None	None
        Stone	Stone
 	
-MasVnrArea: Masonry veneer area in square feet
+<font color = "red">MasVnrArea: Masonry veneer area in square feet</font>
 
-ExterQual: Evaluates the quality of the material on the exterior 
+<font color = "red">ExterQual: Evaluates the quality of the material on the exterior</font> 
 		
        Ex	Excellent
        Gd	Good
@@ -261,7 +262,7 @@ ExterQual: Evaluates the quality of the material on the exterior
        Fa	Fair
        Po	Poor
 		
-ExterCond: Evaluates the present condition of the material on the exterior
+<font color = "red">ExterCond: Evaluates the present condition of the material on the exterior</font>
 		
        Ex	Excellent
        Gd	Good
@@ -269,7 +270,7 @@ ExterCond: Evaluates the present condition of the material on the exterior
        Fa	Fair
        Po	Poor
 		
-Foundation: Type of foundation
+<font color = "red">Foundation: Type of foundation</font>
 		
        BrkTil	Brick & Tile
        CBlock	Cinder Block
@@ -278,7 +279,7 @@ Foundation: Type of foundation
        Stone	Stone
        Wood	Wood
 		
-BsmtQual: Evaluates the height of the basement
+<font color = "red">BsmtQual: Evaluates the height of the basement</font>
 
        Ex	Excellent (100+ inches)	
        Gd	Good (90-99 inches)
@@ -287,7 +288,7 @@ BsmtQual: Evaluates the height of the basement
        Po	Poor (<70 inches
        NA	No Basement
 		
-BsmtCond: Evaluates the general condition of the basement
+<font color = "red">BsmtCond: Evaluates the general condition of the basement</font>
 
        Ex	Excellent
        Gd	Good
@@ -296,7 +297,7 @@ BsmtCond: Evaluates the general condition of the basement
        Po	Poor - Severe cracking, settling, or wetness
        NA	No Basement
 	
-BsmtExposure: Refers to walkout or garden level walls
+<font color = "red">BsmtExposure: Refers to walkout or garden level walls</font>
 
        Gd	Good Exposure
        Av	Average Exposure (split levels or foyers typically score average or above)	
@@ -304,7 +305,7 @@ BsmtExposure: Refers to walkout or garden level walls
        No	No Exposure
        NA	No Basement
 	
-BsmtFinType1: Rating of basement finished area
+<font color = "red">BsmtFinType1: Rating of basement finished area</font>
 
        GLQ	Good Living Quarters
        ALQ	Average Living Quarters
@@ -314,9 +315,9 @@ BsmtFinType1: Rating of basement finished area
        Unf	Unfinshed
        NA	No Basement
 		
-BsmtFinSF1: Type 1 finished square feet
+<font color = "red">BsmtFinSF1: Type 1 finished square feet</font>
 
-BsmtFinType2: Rating of basement finished area (if multiple types)
+<font color = "red">BsmtFinType2: Rating of basement finished area (if multiple types)</font>
 
        GLQ	Good Living Quarters
        ALQ	Average Living Quarters
@@ -326,13 +327,13 @@ BsmtFinType2: Rating of basement finished area (if multiple types)
        Unf	Unfinshed
        NA	No Basement
 
-BsmtFinSF2: Type 2 finished square feet
+<font color = "red">BsmtFinSF2: Type 2 finished square feet</font>
 
-BsmtUnfSF: Unfinished square feet of basement area
+<font color = "red">BsmtUnfSF: Unfinished square feet of basement area</font>
 
-TotalBsmtSF: Total square feet of basement area
+<font color = "red">TotalBsmtSF: Total square feet of basement area</font>
 
-Heating: Type of heating
+<font color = "red">Heating: Type of heating</font>
 		
        Floor	Floor Furnace
        GasA	Gas forced warm air furnace
@@ -341,7 +342,7 @@ Heating: Type of heating
        OthW	Hot water or steam heat other than gas
        Wall	Wall furnace
 		
-HeatingQC: Heating quality and condition
+<font color = "red">HeatingQC: Heating quality and condition</font>
 
        Ex	Excellent
        Gd	Good
@@ -349,12 +350,12 @@ HeatingQC: Heating quality and condition
        Fa	Fair
        Po	Poor
 		
-CentralAir: Central air conditioning
+<font color = "red">CentralAir: Central air conditioning</font>
 
        N	No
        Y	Yes
 		
-Electrical: Electrical system
+<font color = "red">Electrical: Electrical system</font>
 
        SBrkr	Standard Circuit Breakers & Romex
        FuseA	Fuse Box over 60 AMP and all Romex wiring (Average)	
@@ -362,27 +363,27 @@ Electrical: Electrical system
        FuseP	60 AMP Fuse Box and mostly knob & tube wiring (poor)
        Mix	Mixed
 		
-1stFlrSF: First Floor square feet
+<font color = "red">1stFlrSF: First Floor square feet</font>
  
-2ndFlrSF: Second floor square feet
+<font color = "red">2ndFlrSF: Second floor square feet</font>
 
-LowQualFinSF: Low quality finished square feet (all floors)
+<font color = "red">LowQualFinSF: Low quality finished square feet (all floors)</font>
 
-GrLivArea: Above grade (ground) living area square feet
+<font color = "red">GrLivArea: Above grade (ground) living area square feet</font>
 
-BsmtFullBath: Basement full bathrooms
+<font color = "red">BsmtFullBath: Basement full bathrooms</font>
 
-BsmtHalfBath: Basement half bathrooms
+<font color = "red">BsmtHalfBath: Basement half bathrooms</font>
 
-FullBath: Full bathrooms above grade
+<font color = "red">FullBath: Full bathrooms above grade</font>
 
-HalfBath: Half baths above grade
+<font color = "red">HalfBath: Half baths above grade</font>
 
-Bedroom: Bedrooms above grade (does NOT include basement bedrooms)
+<font color = "red">Bedroom: Bedrooms above grade (does NOT include basement bedrooms)</font>
 
-Kitchen: Kitchens above grade
+<font color = "red">Kitchen: Kitchens above grade</font>
 
-KitchenQual: Kitchen quality
+<font color = "red">KitchenQual: Kitchen quality</font>
 
        Ex	Excellent
        Gd	Good
@@ -390,9 +391,9 @@ KitchenQual: Kitchen quality
        Fa	Fair
        Po	Poor
        	
-TotRmsAbvGrd: Total rooms above grade (does not include bathrooms)
+<font color = "red">TotRmsAbvGrd: Total rooms above grade (does not include bathrooms)</font>
 
-Functional: Home functionality (Assume typical unless deductions are warranted)
+<font color = "red">Functional: Home functionality (Assume typical unless deductions are warranted)</font>
 
        Typ	Typical Functionality
        Min1	Minor Deductions 1
@@ -403,9 +404,9 @@ Functional: Home functionality (Assume typical unless deductions are warranted)
        Sev	Severely Damaged
        Sal	Salvage only
 		
-Fireplaces: Number of fireplaces
+<font color = "red">Fireplaces: Number of fireplaces</font>
 
-FireplaceQu: Fireplace quality
+<font color = "red">FireplaceQu: Fireplace quality</font>
 
        Ex	Excellent - Exceptional Masonry Fireplace
        Gd	Good - Masonry Fireplace in main level
@@ -414,7 +415,7 @@ FireplaceQu: Fireplace quality
        Po	Poor - Ben Franklin Stove
        NA	No Fireplace
 		
-GarageType: Garage location
+<font color = "red">GarageType: Garage location</font>
 		
        2Types	More than one type of garage
        Attchd	Attached to home
@@ -424,29 +425,20 @@ GarageType: Garage location
        Detchd	Detached from home
        NA	No Garage
 		
-GarageYrBlt: Year garage was built
+<font color = "red">GarageYrBlt: Year garage was built</font>
 		
-GarageFinish: Interior finish of the garage
+<font color = "red">GarageFinish: Interior finish of the garage</font>
 
        Fin	Finished
        RFn	Rough Finished	
        Unf	Unfinished
        NA	No Garage
 		
-GarageCars: Size of garage in car capacity
+<font color = "red">GarageCars: Size of garage in car capacity</font>
 
-GarageArea: Size of garage in square feet
+<font color = "red">GarageArea: Size of garage in square feet</font>
 
-GarageQual: Garage quality
-
-       Ex	Excellent
-       Gd	Good
-       TA	Typical/Average
-       Fa	Fair
-       Po	Poor
-       NA	No Garage
-		
-GarageCond: Garage condition
+<font color = "red">GarageQual: Garage quality</font>
 
        Ex	Excellent
        Gd	Good
@@ -455,25 +447,34 @@ GarageCond: Garage condition
        Po	Poor
        NA	No Garage
 		
-PavedDrive: Paved driveway
+<font color = "red">GarageCond: Garage condition</font>
+
+       Ex	Excellent
+       Gd	Good
+       TA	Typical/Average
+       Fa	Fair
+       Po	Poor
+       NA	No Garage
+		
+<font color = "red">PavedDrive: Paved driveway</font>
 
        Y	Paved 
        P	Partial Pavement
        N	Dirt/Gravel
 		
-WoodDeckSF: Wood deck area in square feet
+<font color = "red">WoodDeckSF: Wood deck area in square feet</font>
 
-OpenPorchSF: Open porch area in square feet
+<font color = "red">OpenPorchSF: Open porch area in square feet</font>
 
-EnclosedPorch: Enclosed porch area in square feet
+<font color = "red">EnclosedPorch: Enclosed porch area in square feet</font>
 
-3SsnPorch: Three season porch area in square feet
+<font color = "red">3SsnPorch: Three season porch area in square feet</font>
 
-ScreenPorch: Screen porch area in square feet
+<font color = "red">ScreenPorch: Screen porch area in square feet</font>
 
-PoolArea: Pool area in square feet
+<font color = "red">PoolArea: Pool area in square feet</font>
 
-PoolQC: Pool quality
+<font color = "red">PoolQC: Pool quality</font>
 		
        Ex	Excellent
        Gd	Good
@@ -481,7 +482,7 @@ PoolQC: Pool quality
        Fa	Fair
        NA	No Pool
 		
-Fence: Fence quality
+<font color = "red">Fence: Fence quality</font>
 		
        GdPrv	Good Privacy
        MnPrv	Minimum Privacy
@@ -489,7 +490,7 @@ Fence: Fence quality
        MnWw	Minimum Wood/Wire
        NA	No Fence
 	
-MiscFeature: Miscellaneous feature not covered in other categories
+<font color = "red">MiscFeature: Miscellaneous feature not covered in other categories</font>
 		
        Elev	Elevator
        Gar2	2nd Garage (if not described in garage section)
@@ -498,13 +499,13 @@ MiscFeature: Miscellaneous feature not covered in other categories
        TenC	Tennis Court
        NA	None
 		
-MiscVal: $Value of miscellaneous feature
+<font color = "red">MiscVal: $Value of miscellaneous feature</font>
 
-MoSold: Month Sold (MM)
+<font color = "red">MoSold: Month Sold (MM)</font>
 
-YrSold: Year Sold (YYYY)
+<font color = "red">YrSold: Year Sold (YYYY)</font>
 
-SaleType: Type of sale
+<font color = "red">SaleType: Type of sale</font>
 		
        WD 	Warranty Deed - Conventional
        CWD	Warranty Deed - Cash
@@ -517,7 +518,7 @@ SaleType: Type of sale
        ConLD	Contract Low Down
        Oth	Other
 		
-SaleCondition: Condition of sale
+<font color = "red">SaleCondition: Condition of sale</font>
 
        Normal	Normal Sale
        Abnorml	Abnormal Sale -  trade, foreclosure, short sale
