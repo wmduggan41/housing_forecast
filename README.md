@@ -1,6 +1,6 @@
 # NJIT | DS636.852 Final Project
 <hr>
-### <font color = "red">This project was created to explore kaggle dataset [Housing_Prices](https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques), and to implement Machine Learning techniques using R. The description of the dataset contain the following information:</font>
+<font color = "red">This project was created to explore kaggle dataset [House_Prices](https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques), and to implement Machine Learning techniques using R. The description of the dataset contain the following information:</font>
 
 MSSubClass: Identifies the type of dwelling involved in the sale.	
 
