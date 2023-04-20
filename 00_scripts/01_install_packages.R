@@ -9,6 +9,8 @@ r_pkgs <- c(
     # Database
     "odbc",
     "RSQLite",
+    "readx1",
+    "DBI",
     
     # Visualization
     "plotly",
