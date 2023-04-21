@@ -18,18 +18,69 @@ output:
 library(flexdashboard)
 # Install thematic and un-comment for themed static plots (i.e., ggplot2)
 # thematic::thematic_rmd()
+library(shiny)
+library(shinyWidgets)
+library(shinyjs)
+
+# Core
+library(tidyverse)
+library(tidyquant)
+
+# Visualization
+library(plotly)
+
+# Modeling
+library(parsnip)
+library(xgboost)
+library(cluster)
+library(timetk)
+
+# Database
+library(odbc)
+library(RSQLite)
+
+con <- dbConnect(RSQLite::SQLite(), "00_data/database.sqlite")
+
+#dbListTables(con)
+# We now have a local data frame from database connection
+df1 <- tbl(con, "house_tbl") %>%
+  collect()
+dbDisconnect(con)
+
+# Scripts to call in once completed
+# source("../00_scripts/02_process_data.R")
+# source("../00_scripts/03_make_predictions.R")
+
+# Models to call in once completed
+# model_glm <- read_rds("../00_models/model_glm.rds")
+# model_xgboost <- read_rds("../00_models/model_xgboost.rds")
+# model_kmeans <- read_rds("../00_models/k_means_clustering.rds")
+```
+
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
+textInput(inputId = "text_neighborhood_model", label = h4("Neighborhood"), value = "Blmngtn")
+
+br()
+hr()
+br()
+
+actionButton(inputId = "apply", label = "Apply", icon = icon(name = "play", lib = "font-awesome"))
+
 ```
 
 Column {data-width=650 .tabset}
 -----------------------------------------------------------------------
 
-### Chart A
+### Generalized Linear Model (GLM)
 
 ```{r}
 
 ```
 
-### Chart B
+### K-means Clustering
 
 ```{r}
 
@@ -38,13 +89,13 @@ Column {data-width=650 .tabset}
 Column {data-width=350}
 -----------------------------------------------------------------------
 
-### Chart C
+### Price Prediction
 
 ```{r}
 
 ```
 
-### Chart D
+### Accuracy
 
 ```{r}
 
