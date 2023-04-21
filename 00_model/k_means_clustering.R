@@ -1,0 +1,39 @@
+# K-Means Clustering
+
+# Importing the dataset
+data = read.csv("00_data/wmd_house.csv")
+X = data[4:5]
+
+
+# Using the elbow method to find the optimal number of clusters
+set.seed(6)
+wcss = vector()
+for (i in 1:10) wcss[i] = sum(kmeans(X, i)$withinss)
+plot(x = 1:10,
+     y = wcss,
+     type = 'b',
+     main = paste('The Elbow Method'),
+     xlab = 'Number of clusters',
+     ylab = 'WCSS')
+
+# Fitting K-Means to dataset
+set.seed(123)
+kmeans = kmeans(x = X,
+                k = 3,
+                centers = centers,
+                iter.max = 100,
+                nstart = 1)
+
+# Visualising the clusters
+library(cluster)
+clusplot(x = X,
+         clus = kmeans$cluster,
+         lines = 5,
+         shade = TRUE,
+         color = TRUE,
+         labels = 2,
+         plotchar = TRUE,
+         span = TRUE,
+         main = paste('Clusters of customers'),
+         xlab = 'Annual Income',
+         ylab = 'Spending Score')
