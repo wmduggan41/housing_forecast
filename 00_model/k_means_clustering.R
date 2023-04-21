@@ -4,6 +4,7 @@
 data = read.csv("00_data/wmd_house.csv")
 X = data[4:5]
 
+
 # Using the elbow method to find the optimal number of clusters
 set.seed(6)
 wcss = vector()
@@ -15,22 +16,23 @@ plot(x = 1:10,
      xlab = 'Number of clusters',
      ylab = 'WCSS')
 
-# Fitting K-Means to the dataset
-set.seed(29)
+# Fitting K-Means to dataset
+set.seed(123)
 kmeans = kmeans(x = X,
-                centers = 5,
-                iter.max = 300,
-                nstart = 10)
+                k = 3,
+                centers = centers,
+                iter.max = 100,
+                nstart = 1)
 
 # Visualising the clusters
 library(cluster)
 clusplot(x = X,
          clus = kmeans$cluster,
-         lines = 0,
+         lines = 5,
          shade = TRUE,
          color = TRUE,
          labels = 2,
-         plotchar = FALSE,
+         plotchar = TRUE,
          span = TRUE,
          main = paste('Clusters of customers'),
          xlab = 'Annual Income',
