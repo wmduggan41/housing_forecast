@@ -1,6 +1,6 @@
 ![](img/iam.jpg "hover text")
 
-# <font color = "darkred">Kaggle | Boston Housing Dataset</font>
+# `Kaggle | Boston Housing Dataset`
 
 <hr>
 
