@@ -1,4 +1,4 @@
-![](img/logo.jpg "hover text")
+![](img/iam.jpg "hover text")
 
 # <font color = "darkred">Kaggle | Boston Housing Dataset</font>
 
