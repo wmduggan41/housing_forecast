@@ -1,9 +1,9 @@
 # K-Means Clustering
-
 # Importing the dataset
-data = read.csv("00_data/wmd_house.csv")
-X = data[4:5]
-
+kdata = read.csv("00_data/wmd_house.csv")
+# Selecting target variables
+cluster_cols <- c("OverallQual", "OverallCond")
+X <- kdata[, cluster_cols]
 
 # Using the elbow method to find the optimal number of clusters
 set.seed(6)
@@ -18,22 +18,18 @@ plot(x = 1:10,
 
 # Fitting K-Means to dataset
 set.seed(123)
-kmeans = kmeans(x = X,
-                k = 3,
-                centers = centers,
-                iter.max = 100,
-                nstart = 1)
+kmeans = kmeans(X, 5, iter.max = 300, nstart = 10)
 
-# Visualising the clusters
+# Visualizing the clusters
 library(cluster)
 clusplot(x = X,
          clus = kmeans$cluster,
-         lines = 5,
+         lines = 0,
          shade = TRUE,
          color = TRUE,
          labels = 2,
          plotchar = TRUE,
          span = TRUE,
-         main = paste('Clusters of customers'),
-         xlab = 'Annual Income',
-         ylab = 'Spending Score')
+         main = paste('Clusters of House Quality'),
+         xlab = 'Quality Condition',
+         ylab = 'Quality Score')
