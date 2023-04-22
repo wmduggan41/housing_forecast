@@ -52,35 +52,69 @@ dbDisconnect(con)
 # source("../00_scripts/03_make_predictions.R")
 
 # Models to call in once completed
-# model_glm <- read_rds("../00_models/model_glm.rds")
-# model_xgboost <- read_rds("../00_models/model_xgboost.rds")
-# model_kmeans <- read_rds("../00_models/k_means_clustering.rds")
+# model_glm <- read_rds("../00_model/model_glm.rds")
+# model_xgboost <- read_rds("../00_model/model_xgboost.rds")
+# model_kmeans <- read_rds("00_model/model_kmeans.rds") 
 ```
 
 Column {.sidebar}
 -----------------------------------------------------------------------
 
 ```{r}
-textInput(inputId = "text_neighborhood_model", label = h4("Neighborhood"), value = "Blmngtn")
+useShinyjs(rmd = TRUE)
+
+# Selecting Neighborhood
+pickerInput(inputId  = "picker_category_1", 
+            label    = h4("Neighborhood"),
+            choices  = df1$Neighborhood, 
+            selected = "Blmngtn")
 
 br()
 hr()
 br()
 
+pickerInput(inputId  = "picker_input_2", 
+            label    = h4("Number of clusters:"), 
+            choices  = c(3, 5, 7, 9, 11, 13, 15), 
+            selected = 5)
+
+
 actionButton(inputId = "apply", label = "Apply", icon = icon(name = "play", lib = "font-awesome"))
 
+actionButton("reset", label = "Reset", icon = icon("sync"))
+
+observeEvent(eventExpr = input$reset, handlerExpr = {
+  
+  updateTextInput(session = session, inputId = "picker_category_1", selected = "Blmngtn")
+  
+  updatePickerInput(session = session, inputId = "picker_category_2", selected = 5)
+
+  delay(ms = 300, expr = {
+    click(id = "apply")
+  })
+  
+})
 ```
 
 Column {data-width=650 .tabset}
 -----------------------------------------------------------------------
 
-### Generalized Linear Model (GLM)
+### K-means Clustering
 
 ```{r}
-
+# Define UI elements for k-means clustering
+# new_cluster_tbl <- eventReactive(eventExpr = input$apply, valueExpr = {
+#   
+#   server_kmeans(
+#     cluster_model = input$text_bike_model, 
+#     category_1 = bike_type(), 
+#     frame_material = input$picker_frame_material, 
+#     .ml_model = model_xgboost)
+#   
+# }, ignoreNULL = FALSE)
 ```
 
-### K-means Clustering
+### Generalized Linear Model (GLM)
 
 ```{r}
 
