@@ -19,4 +19,9 @@ dbWriteTable(conn = con, name = "house_tbl", value = data, overwrite = TRUE)
 dbDisconnect(con)
 
 
+#install.packages("skimr")
+library(skimr)
+data %>% skim()
 
+train_check <- read.csv("00_data/train.csv")
+train_check %>% skim()
