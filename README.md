@@ -1,36 +1,5 @@
 # ```Kaggle | Boston Housing Dataset```
 
-```{r setup, include=FALSE}
-library(knitr)
-library(skimr)
-library(dplyr)
-library(extrafont)
-opts_chunk$set(warning = FALSE,
-               message = FALSE,
-               fig.align  = "center",
-               fig.width = 7.25,
-               fig.height = 6)
-
-```
-
-
-```{r check_fonts}
-fonts <- extrafont::fonttable()
-any(grepl("Deja", fonts$FontName))
-```
-
-
-```{r check_locale}
-sessionInfo()
-```
-
-
-
-```{r, results='asis'}
-kable(skim(train_check))
-```
-
-
 <hr>
 
 This project was created to explore the Kaggle dataset [House_Prices](https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques) and to implement machine learning techniques using R.
@@ -41,9 +10,26 @@ This project was created to explore the Kaggle dataset [House_Prices](https://ww
 | Task 2 - ML implementation | In progress |
 | Task 3 - Shiny Web App | Planned |
 
-The description of the dataset contains the following information:
 
-### <font color = "red">Clustering variables:</font>	
+### <font color = "red">Objective:</font> 
+
+- We are not competing with other teams on kaggle
+- This project is a playground to practice the knowledge of this class and prepare for the final exam.
+- Group project, 1-3 people per team. You can be your own team. 
+- You can use `R` or Python
+- Build one prediction model using the ML algorithms of this course
+- Evaluate your prediction model
+- Try different ways to improve your model and show the improvements.
+- Submit code and results in Jupyter and `HTML` formats on canvas
+
+
+![](img/skim1.jpg "hover text")
+
+
+
+
+
+### <font color = "red">Chosen dataset variables:</font>	
 
 |  | Name | Data Type |
 |---|------|-----------|
@@ -58,25 +44,10 @@ The description of the dataset contains the following information:
 |09 | YrSold | Int |
 |10 | SalePrice | Int |
 
-### <font color = "red">Objective: Identify abnormal differences that affect target Sale Price value.</font>
-
 - Rows: 1461
 - Categorical Variables: 2
 - Numerical Variables: 9
 
+The description of the dataset contains the following information:
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-![](img/iam.jpg "hover text")
+![](img/skim2.jpg "hover text")
