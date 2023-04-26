@@ -5,6 +5,7 @@ r_pkgs <- c(
     # Core
     "tidyverse",
     "tidyquant",
+    "skimr",
     
     # Database
     "odbc",
@@ -24,7 +25,7 @@ r_pkgs <- c(
     # Modeling & Machine Learning
     "parsnip",
     "rsample",
-    "xgboost"
+    "cluster"
     )
 
 install.packages(r_pkgs)
