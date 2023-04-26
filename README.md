@@ -26,11 +26,6 @@ This project was created to explore the Kaggle dataset [House_Prices](https://ww
 - Submit code and results in Jupyter and `HTML` formats on canvas
 
 
-
-![all_vars](all_vars.svg)
-
-
-
 ### <font color = "red">Chosen dataset variables:</font>	
 
 |  | Name | Data Type |
