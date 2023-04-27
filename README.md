@@ -7,11 +7,11 @@
 
 This project was created to explore the Kaggle dataset [House_Prices](https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques) and to implement machine learning techniques using R.
 
-| Feature | Status |
+| Task | Status |
 |---------|--------|
-| Task 1 - Target Variables | Complete |
-| Task 2 - ML implementation | In progress |
-| Task 3 - Shiny Web App | Planned |
+| 1 - Target Variables | Complete |
+| 2 - ML implementation | In progress |
+| 3 - Shiny Web App | Planned |
 
 
 ### <font color = "red">Objective:</font> 
