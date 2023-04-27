@@ -12,12 +12,14 @@ output:
         google: JetBrains Mono
     orientation: columns
     vertical_layout: fill
+runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
-library(flexdashboard)
+# 1.0 Libraries ----
 # Install thematic and un-comment for themed static plots (i.e., ggplot2)
 # thematic::thematic_rmd()
+library(flexdashboard)
 library(shiny)
 library(shinyWidgets)
 library(shinyjs)
@@ -28,6 +30,7 @@ library(tidyquant)
 
 # Visualization
 library(plotly)
+library(ggmap)
 
 # Modeling
 library(parsnip)
@@ -39,22 +42,32 @@ library(timetk)
 library(odbc)
 library(RSQLite)
 
-con <- dbConnect(RSQLite::SQLite(), "00_data/database.sqlite")
+# 2.0 Data ----
+con <- dbConnect(RSQLite::SQLite(), "00_data/house_data.db")
 
-#dbListTables(con)
-# We now have a local data frame from database connection
-df1 <- tbl(con, "house_tbl") %>%
+#dbListTables(con) # uncomment to check 3 tables collected
+# We now have 1 database connection for 3 csv files
+train_tbl <- tbl(con, "house_train_tbl") %>% collect()
+test_tbl <- tbl(con, "house_test_tbl") %>% collect()
+key_tbl <- tbl(con, "key_tbl") %>% collect()
+
+# Created price per square footage column and tbl
+processed_key_tbl <- key_tbl %>%
+  mutate(price_sqft = SalePrice / LotArea) %>%
   collect()
-dbDisconnect(con)
+
+processed_train_tbl <- train_tbl %>%
+  mutate(price_sqft = SalePrice / LotArea) %>%
+  collect()
 
 # Scripts to call in once completed
-# source("../00_scripts/02_process_data.R")
-# source("../00_scripts/03_make_predictions.R")
+# source("00_scripts/02_process_data.R")
+# source("00_scripts/03_make_predictions.R")
 
 # Models to call in once completed
-# model_glm <- read_rds("../00_model/model_glm.rds")
-# model_xgboost <- read_rds("../00_model/model_xgboost.rds")
+# model_glm <- read_rds("00_model/model_glm.rds")
 # model_kmeans <- read_rds("00_model/model_kmeans.rds") 
+dbDisconnect(con)
 ```
 
 Column {.sidebar}
@@ -66,7 +79,7 @@ useShinyjs(rmd = TRUE)
 # Selecting Neighborhood
 pickerInput(inputId  = "picker_category_1", 
             label    = h4("Neighborhood"),
-            choices  = sort(unique(df1$Neighborhood)), 
+            choices  = sort(unique(train_tbl$Neighborhood)), 
             selected = "Blmngtn")
 
 br()
@@ -79,15 +92,21 @@ pickerInput(inputId  = "picker_input_2",
             selected = 5)
 
 
-actionButton(inputId = "apply", label = "Apply", icon = icon(name = "play", lib = "font-awesome"))
+actionButton(inputId = "apply", 
+             label = "Apply", 
+             icon = icon(name = "play", lib = "font-awesome"))
 
 actionButton("reset", label = "Reset", icon = icon("sync"))
 
 observeEvent(eventExpr = input$reset, handlerExpr = {
   
-  updateTextInput(session = session, inputId = "picker_category_1", selected = "Blmngtn")
+  updateTextInput(session = session, 
+                  inputId = "picker_category_1", 
+                  selected = "Blmngtn")
   
-  updatePickerInput(session = session, inputId = "picker_category_2", selected = 5)
+  updatePickerInput(session = session, 
+                    inputId = "picker_category_2", 
+                    selected = 5)
 
   delay(ms = 300, expr = {
     click(id = "apply")
@@ -123,11 +142,42 @@ Column {data-width=650 .tabset}
 Column {data-width=350}
 -----------------------------------------------------------------------
 
-### Price Prediction
+### By Neighborhood
 
 ```{r}
-
+geo_plot_tbl <- processed_key_tbl %>% 
+  group_by(Neighborhood) %>%
+  summarise(total_sqft = sum(price_sqft)) %>%
+  ungroup() %>%
+  mutate(label_text = str_glue("Neighborhood: {Neighborhood}
+                              Price per LotArea: {scales::dollar(total_sqft)}"))
 ```
+
+```{r}
+boston_geo <- geocode("Boston, USA")
+
+geo_plot_tbl %>%
+  plot_geo(locationmode = "USA-states") %>%
+    add_trace(
+      z = processed_key_tbl$total_sqft, 
+      locations = ~boston_geo$lon, ~boston_geo$lat, 
+      color = ~Neighborhood,
+      colors = "Blues",
+      colorbar = list(title = "Value")) %>%
+  
+    layout(
+      title = "Value by Boston Neighborhood", 
+      geo = list(scope = "usa", 
+                 projection = list(type = "albers usa"), 
+                 showlakes = TRUE, 
+                 lakecolor = toRGB("white")))
+
+
+
+# LAT = 42.361145
+# LNG = -71.057083
+```
+
 
 ### Accuracy
 
