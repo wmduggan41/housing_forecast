@@ -15,6 +15,7 @@ r_pkgs <- c(
     
     # Visualization
     "plotly",
+    "ggmap",
     
     # Shiny-verse
     "flexdashboard",
