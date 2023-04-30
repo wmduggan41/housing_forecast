@@ -1,76 +1,36 @@
-# Define server logic for k-means clustering
-server_kmeans <- function(input, output) {
-  # Create reactive data for k-means clustering
-  kmeans_data <- reactive({
-    k <- input$kmeans_k
-    # Fitting K-Means to dataset
-    set.seed(123)
-    kmeans_obj <- kmeans(X, k, iter.max = 300, nstart = 10)
-    # Add cluster assignments to original data frame
-    kdata$cluster <- as.factor(kmeans_obj$cluster)
-    kdata
-  })
-  
-  # Render k-means plot
-  output$kmeans_plot <- renderPlotly({
-    p <- ggplotly(
-      data = kmeans_data(),
-      x = ~OverallQual,
-      y = ~SalePrice,
-      color = ~cluster,
-      colors = "Set1",
-      type = "scatter",
-      mode = "markers",
-      marker = list(size = 10)
-    ) %>%
-      layout(
-        title = "Clusters of House Quality",
-        xaxis = list(title = "Quality Condition"),
-        yaxis = list(title = "Quality Score")
-      )
-    p
-  })
-}
+library(ggplot2)
+library(ggfortify)
+library(dplyr)
+library(tidyr)
 
-# library(tidyverse)
-# library(corrplot)
-# library(ggplot2)
-# library(reshape2)
-# library(caret)
+# Convert kmeans object to data.frame
+kmeans_df <- as.data.frame(kmeans_model$centers)
+rownames(kmeans_df) <- paste0("Cluster ", 1:nrow(kmeans_df))
 
-# Selecting target variables
-ktrain <- processed_key_tbl
-ktrain$Id <- NULL
+# Combine the PCs with the cluster information
+new_kmeans_df <- data.frame(SalePrice  = training_data$SalePrice, 
+                            price_sqft = training_data$price_sqft, 
+                            .cluster   = kmeans_model$cluster)
 
-numeric_data <- ktrain %>%
-  select_if(is.numeric)
+new_kmeans_df <- new_kmeans_df %>% 
+  mutate(.cluster = factor(.cluster, levels = 1:length(kmeans_model$centers)))
 
-set.seed(123) # Set the seed for reproducibility
-trainIndex <- createDataPartition(ktrain$SalePrice, 
-                                  p = 0.7, 
-                                  list = FALSE, 
-                                  times = 1)
+# Fortify the data for use in ggplot2
+processed_kmeans_df <- fortify(new_kmeans_df)
 
-training_data <- ktrain[trainIndex, ]
-testing_data <- ktrain[-trainIndex, ]
+# Plot the data
+p2 <- ggplot(processed_kmeans_df, aes(x = SalePrice, y = price_sqft, color = .cluster)) + 
+      geom_point() + 
+      labs(title = "K-means Clustering (k=5)", 
+           x = "Sale Price", 
+           y = "Price per sqft", 
+           color = "Cluster") + 
+      theme_minimal() +
+      annotate("text", x = c(50000, 200000, 500000, 700000), y = c(5, 15, 25, 35), label = c("Highlight 1", "Highlight 2", "Highlight 3", "Highlight 4"), color = "black") +
+      geom_rect(aes(xmin = 0, xmax = 200000, ymin = 0, ymax = 20), fill = NA, color = "red", linetype = "dashed") +
+      geom_rect(aes(xmin = 200000, xmax = 500000, ymin = 0, ymax = 30), fill = NA, color = "green", linetype = "dashed") +
+      geom_rect(aes(xmin = 500000, xmax = Inf, ymin = 0, ymax = 40), fill = NA, color = "blue", linetype = "dashed") +
+      scale_x_continuous(labels = scales::dollar_format(prefix = "$", scale = 1)) +
+      scale_y_continuous(labels = scales::dollar_format(prefix = "$", scale = 1))                   
 
-
-# Fit k-means model on the training data
-library(cluster)
-kmeans_model <- kmeans(training_data[, c("SalePrice", "price_sqft")], 
-                       centers = 5, 
-                       iter.max = 300, 
-                       nstart = 10)
-
-# Visualize the clusters
-library(plotly)
-plot_ly(x = training_data$SalePrice, 
-        y = training_data$price_sqft, 
-        color = kmeans_model$cluster, 
-        colors = "Set1", mode = "markers", 
-        marker = list(size = 8)) %>%
-
-  layout(xaxis = list(title = "Sale Price"), 
-         yaxis = list(title = "per sqft"), 
-         title = "K-Means Clustering of House Quality")
-
+ggsave("img/kmeans_chosen.png", dpi = 300)
