@@ -10,7 +10,7 @@ output:
         google: Prompt
       code_font:
         google: JetBrains Mono
-    orientation: columns
+    orientation: rows
     vertical_layout: fill
 runtime: shiny
 ---
@@ -21,16 +21,20 @@ runtime: shiny
 # thematic::thematic_rmd()
 library(flexdashboard)
 library(shiny)
-library(shinyWidgets)
 library(shinyjs)
+library(shinyWidgets)
 
 # Core
+library(caret)
 library(tidyverse)
 library(tidyquant)
+library(tidyr)
+library(tibble)
 
 # Visualization
 library(plotly)
 library(ggmap)
+library(corrplot)
 
 # Modeling
 library(parsnip)
@@ -41,24 +45,27 @@ library(timetk)
 # Database
 library(odbc)
 library(RSQLite)
+```
 
+```{css}
+.bootstrap-switch, .bootstrap-switch-handle-on,
+.bootstrap-switch, .bootstrap-switch-handle-off,
+.bootstrap-switch, .bootstrap-switch-label {
+    display: inline-block;
+    vertical-align: baseline;
+}
+```
+
+
+```{r}
 # 2.0 Data ----
 con <- dbConnect(RSQLite::SQLite(), "00_data/house_data.db")
 
 #dbListTables(con) # uncomment to check 3 tables collected
 # We now have 1 database connection for 3 csv files
-train_tbl <- tbl(con, "house_train_tbl") %>% collect()
-test_tbl <- tbl(con, "house_test_tbl") %>% collect()
-key_tbl <- tbl(con, "key_tbl") %>% collect()
-
-# Created price per square footage column and tbl
-processed_key_tbl <- key_tbl %>%
-  mutate(price_sqft = SalePrice / LotArea) %>%
-  collect()
-
-processed_train_tbl <- train_tbl %>%
-  mutate(price_sqft = SalePrice / LotArea) %>%
-  collect()
+train_tbl <- tbl(con, "train_data") %>% collect()
+test_tbl <- tbl(con, "test_data") %>% collect()
+key_tbl <- tbl(con, "key_data") %>% collect()
 
 # Scripts to call in once completed
 # source("00_scripts/02_process_data.R")
@@ -142,15 +149,28 @@ Column {data-width=650 .tabset}
 Column {data-width=350}
 -----------------------------------------------------------------------
 
+### Accuracy
+
+```{r}
+
+```
+
 ### By Neighborhood
 
 ```{r}
-geo_plot_tbl <- processed_key_tbl %>% 
-  group_by(Neighborhood) %>%
-  summarise(total_sqft = sum(price_sqft)) %>%
-  ungroup() %>%
-  mutate(label_text = str_glue("Neighborhood: {Neighborhood}
-                              Price per LotArea: {scales::dollar(total_sqft)}"))
+key_data <- key_data %>% 
+  mutate(Neighborhood_Category = case_when(
+    Neighborhood %in% c("CollgCr", "Veenker", "Crawfor", "Somerst", "NridgHt", "Gilbert", "StoneBr") ~ "High Value",
+    Neighborhood %in% c("Mitchel", "NWAmes", "OldTown", "BrkSide", "Sawyer", "Edwards") ~ "Medium Value",
+    Neighborhood %in% c("NoRidge", "IDOTRR", "NAmes", "SawyerW", "ClearCr", "MeadowV") ~ "Low Value",
+    TRUE ~ "Other"
+  ))
+# geo_plot_tbl <- processed_key_tbl %>% 
+#   group_by(Neighborhood) %>%
+#   summarise(total_sqft = sum(price_sqft)) %>%
+#   ungroup() %>%
+#   mutate(label_text = str_glue("Neighborhood: {Neighborhood}
+#                               Price per LotArea: {scales::dollar(total_sqft)}"))
 ```
 
 ```{r}
@@ -177,11 +197,3 @@ geo_plot_tbl %>%
 # LAT = 42.361145
 # LNG = -71.057083
 ```
-
-
-### Accuracy
-
-```{r}
-
-```
-
