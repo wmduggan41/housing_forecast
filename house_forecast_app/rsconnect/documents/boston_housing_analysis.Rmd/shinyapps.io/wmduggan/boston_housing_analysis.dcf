@@ -1,0 +1,13 @@
+name: boston_housing_analysis
+title: boston_housing_analysis
+username:
+account: wmduggan
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 9023841
+bundleId: 7171338
+url: https://wmduggan.shinyapps.io/boston_housing_analysis/
+when: 1683156060.33108
+lastSyncTime: 1683156060.33109
+asMultiple: FALSE
+asStatic: FALSE
