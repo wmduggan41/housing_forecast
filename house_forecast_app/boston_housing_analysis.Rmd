@@ -1,17 +1,10 @@
 ---
-title: "Boston Housing Analysis"
+title: "Boston Housing"
 output: 
   flexdashboard::flex_dashboard:
-    theme:
-      bg: "#101010"
-      fg: "#FDF7F7" 
-      primary: "#ED79F9"
-      base_font:
-        google: Prompt
-      code_font:
-        google: JetBrains Mono
     orientation: rows
     vertical_layout: fill
+    css: css/styles-dark.css
 runtime: shiny
 ---
 
@@ -66,13 +59,14 @@ source("04_demand_forecast.R")
 con <- dbConnect(RSQLite::SQLite(), "house_data.db")
 # con <- dbConnect(RSQLite::SQLite(), "00_data/house_data.db")
 
-key_tbl <- tbl(con, "key_data") %>% collect()
+main_data <- tbl(con, "key_data") 
 
+main_data %>% mutate(price_sqft = ifelse(is.na(SalePrice) | is.na(LotArea), 0, SalePrice / LotArea))
 
-processed_data_tbl <- key_tbl %>%
-  mutate(price_sqft = ifelse(is.na(SalePrice) | is.na(LotArea), 0, SalePrice / LotArea)) %>%
+processed_data_tbl <- main_data %>%
   mutate(date = make_date(YrSold, MoSold)) %>%
   select(date, price_sqft)
+
 
 dbDisconnect(con)
 ```
@@ -83,117 +77,317 @@ Column {.sidebar}
 ```{r}
 useShinyjs(rmd = TRUE)
 
+dateRangeInput(
+  inputId = "date_range", 
+  label   = h4("Date Range"),
+  start   = min(processed_data_tbl$date), 
+  end     = max(processed_data_tbl$date), 
+  min     = min(processed_data_tbl$date), 
+  max     = max(processed_data_tbl$date), 
+  startview = "month")
+
 # Selecting Neighborhood
 pickerInput(inputId  = "picker_category_1", 
             label    = h4("Neighborhood"),
-            choices  = sort(unique(train_tbl$Neighborhood)), 
+            choices  = sort(unique(main_data$Neighborhood)), 
             selected = "Blmngtn")
 
 br()
 hr()
 br()
 
-pickerInput(inputId  = "picker_input_2", 
-            label    = h4("Number of clusters:"), 
-            choices  = c(3, 5, 7, 9, 11, 13, 15), 
-            selected = 5)
+# Selecting Neighborhood
+pickerInput(inputId  = "picker_category_2", 
+            label    = h4("Building Type"),
+            choices  = sort(unique(main_data$BldgType)), 
+            selected = "1Fam")
 
+br()
+hr()
+br()
 
-actionButton(inputId = "apply", 
-             label = "Apply", 
-             icon = icon(name = "play", lib = "font-awesome"))
+h4("Forecast Mode")
+switchInput(
+  inputId     = "forecast_mode",
+  value       = FALSE, 
+  onStatus    = "success", 
+  onLabel     = "On", 
+  offLabel    = "Off",
+  handleWidth = 80,
+  labelWidth  = 80, 
+  inline      = TRUE, 
+  width       = "150px")
 
-actionButton("reset", label = "Reset", icon = icon("sync"))
+conditionalPanel(condition = "input.forecast_mode == 1", 
+                 numericInput(inputId = "length_out", 
+                              label   = "Forecast Horizon", 
+                              value   = 12, 
+                              min     = 1))
+
+# APPLY BUTTONS
+actionButton(inputId = "apply", label = "Apply", icon = icon("play"))
+
+actionButton(inputId = "reset", label = "Reset", icon = icon("sync"))
 
 observeEvent(eventExpr = input$reset, handlerExpr = {
   
-  updateTextInput(session = session, 
-                  inputId = "picker_category_1", 
-                  selected = "Blmngtn")
+  updatePickerInput(
+    session  = session, 
+    inputId  = "picker_category_1", 
+    selected = unique(processed_data_tbl$category_1))
   
-  updatePickerInput(session = session, 
-                    inputId = "picker_category_2", 
-                    selected = 5)
+  updatePickerInput(
+    session = session, 
+    inputId = "picker_category_2", 
+    selected = unique(processed_data_tbl$category_2))
 
-  delay(ms = 300, expr = {
-    click(id = "apply")
+  updateDateRangeInput(
+    session = session, 
+    inputId = "date_range", 
+    start   = min(processed_data_tbl$date), 
+    end     = max(processed_data_tbl$date))
+  
+  updateRadioGroupButtons(
+    session = session, 
+    inputId = "time_unit", 
+    selected = "month"
+  )
+  
+  updateSwitchInput(
+    session = session, 
+    inputId = "forecast_mode",
+    value   = FALSE
+  )
+  
+  updateNumericInput(
+    session = session, 
+    inputId = "length_out", 
+    value   = 12)
+  
+  shinyjs::delay(ms = 300, expr = {
+    shinyjs::click(id = "apply")
   })
+ 
+  
+})
+
+# Sanity check -----
+# renderPrint(input$date_range)
+
+# renderPrint(input$picker_category_2)
+
+# renderText(input$checkbox_category_1)
+```
+
+```{r}
+processed_data_filtered_tbl <- eventReactive(
+  eventExpr = input$apply, 
+                                             
+  valueExpr = {
+  
+    processed_data_tbl %>%
+      
+      filter(date %>% between(left  = input$date_range[1], 
+                              right = input$date_range[2])) %>%
+  
+      filter(category_1 %in% input$checkbox_category_1) %>%
+      
+      filter(category_2 %in% input$picker_category_2)
+
+  },
+  ignoreNULL = FALSE
+)
+```
+
+
+Row {data-height=150}
+-----------------------------------------------------------------------
+
+```{r}
+summary_values_tbl <- reactive({
+
+   processed_data_filtered_tbl() %>%
+
+     summarize(
+       health_metric = unique(LotArea) %>% length(),
+       wealth_metric = sum(SalePrice),
+       wise_metric   = (sum(str_detect(SalePrice)) / (sum(str_detect(LotArea)) + 0.0001)) %>%
+         round(1)
+     )
+
+ })
+
+ renderPrint(summary_values_tbl())
+```
+
+### Lot Size
+
+```{r}
+renderValueBox({
+  
+  valueBox(
+    value   = summary_values_tbl()$health_metric %>% scales::comma(), 
+    caption = "Lot Size", 
+    icon    = "", 
+    color   = case_when(summary_values_tbl()$health_metric > 10000 ~ "success",
+                        summary_values_tbl()$health_metric > 6000 ~ "warning",
+                        TRUE ~ "danger"))
   
 })
 ```
 
-Column {data-width=650 .tabset}
------------------------------------------------------------------------
+### Total Sale Price
+
+```{r}
+renderValueBox({
+  
+  valueBox(
+    value   = summary_values_tbl()$wealth_metric %>% scales::dollar(scale = 1e-6, suffix = "M", accuracy = 0.1), 
+    caption = "Total Sale", 
+    icon    = "fa-money-check-alt", 
+    color   = case_when(summary_values_tbl()$wealth_metric < 5e6 ~ "danger",
+                        summary_values_tbl()$wealth_metric < 10e6 ~ "warning",
+                        TRUE ~ "success"))
+  
+})
+```
+
+
+```{r}
+renderValueBox({
+  
+  valueBox(
+    value   = summary_values_tbl()$wise_metric, 
+    caption = "Ratio, Price per sqft", 
+    icon    = "fa-brain", 
+    color   = case_when(summary_values_tbl()$wise_metric > 0.5 ~ "warning",
+                        summary_values_tbl()$wise_metric > 2.5 ~ "success",
+                        TRUE ~ "warning"))
+  
+})
+```
+
+
+Column {data-width=350}
+---------------------------------------------------------------
 
 ### K-means Clustering
 
 ```{r}
-# Define UI elements for k-means clustering
-# new_cluster_tbl <- eventReactive(eventExpr = input$apply, valueExpr = {
+# output$plotly_1 <- renderPlotly({
+#
+# ui <- fluidPage(
+#   titlePanel("Interactive K-means Clustering"),
 #   
-#   server_kmeans(
-#     cluster_model = input$text_bike_model, 
-#     category_1 = bike_type(), 
-#     frame_material = input$picker_frame_material, 
-#     .ml_model = model_xgboost)
-#   
-# }, ignoreNULL = FALSE)
+#   sidebarLayout(
+#     sidebarPanel(
+#       selectInput("k_value",
+#                   "Number of Clusters:",
+#                   choices = c(3, 5, 7, 9),
+#                   selected = 3)
+#     ),
+#     
+#     mainPanel(
+#       plotlyOutput("kmeans_plot")
+#     )
+#   )
+# )
+# 
+# shinyApp(ui = ui, server = render_kmeans)
+#plotlyOutput(outputId = "plotly_1")
 ```
+
+Column {data-width=350}
+---------------------------------------------------------------
 
 ### Generalized Linear Model (GLM)
 
 ```{r}
+shinyWidgets::radioGroupButtons(
+  inputId  = "time_unit", 
+  label    = "Time Unit", 
+  choices  = c("D" = "day", "W" = "week", "M" = "month", "Q" = "quarter", "Y" = "year"), 
+  selected = "month", 
+  status   = "primary", 
+  justified = TRUE, 
+  checkIcon = list(
+    yes = icon("ok", lib = "glyphicon"), 
+    no  = NULL
+    )
+)
 
+observeEvent(eventExpr = input$time_unit, {
+  
+  if (input$forecast_mode) {
+    delay(300, click(id = "apply"))
+  }
+  
+})
+
+observeEvent(eventExpr = input$forecast_mode, {
+  
+    delay(300, click(id = "apply"))
+  
+}, once = TRUE)
 ```
 
-Column {data-width=350}
+```{r}
+time_plot_tbl <- reactive({
+  
+  processed_data_filtered_tbl() %>% 
+    aggregate_time_series(time_unit = input$time_unit)
+  
+})
+  
+time_plot_predictions_tbl <- eventReactive(eventExpr = input$apply, {
+  
+  if (input$forecast_mode) {
+    time_plot_tbl() %>% 
+      generate_forecast(n_future = input$n_future, seed = 123)
+  }
+  
+})
+
+#renderPrint(time_plot_predictions_tbl())
+
+output$plotly_2 <- renderPlotly({
+  
+  if (input$forecast_mode) {
+    p <- time_plot_predictions_tbl() %>%
+      plot_forecast()
+  } else {
+    p <- time_plot_tbl() %>%
+      plot_time_series()
+  }
+  
+  p %>% 
+    layout(margin = list(b = 200))
+
+})
+
+plotlyOutput(outputId = "plotly_2")
+```
+
+
+Row {data-height=150}
 -----------------------------------------------------------------------
 
-### Accuracy
+### Neighborhood 
 
 ```{r}
+boston_location <- function(input, output) {
 
+  main_data <- data.frame(Neighborhood = c("A", "B", "C", "D", "E"))
+
+  neighborhood_data <- reactive({
+    main_data$Neighborhood
+  })
+
+  output$neighborhoodOutput <- renderPrint({
+    neighborhood_data()
+  })
+}
+
+renderPrint(input$picker_category_1)
 ```
 
-### By Neighborhood
-
-```{r}
-key_data <- key_data %>% 
-  mutate(Neighborhood_Category = case_when(
-    Neighborhood %in% c("CollgCr", "Veenker", "Crawfor", "Somerst", "NridgHt", "Gilbert", "StoneBr") ~ "High Value",
-    Neighborhood %in% c("Mitchel", "NWAmes", "OldTown", "BrkSide", "Sawyer", "Edwards") ~ "Medium Value",
-    Neighborhood %in% c("NoRidge", "IDOTRR", "NAmes", "SawyerW", "ClearCr", "MeadowV") ~ "Low Value",
-    TRUE ~ "Other"
-  ))
-# geo_plot_tbl <- processed_key_tbl %>% 
-#   group_by(Neighborhood) %>%
-#   summarise(total_sqft = sum(price_sqft)) %>%
-#   ungroup() %>%
-#   mutate(label_text = str_glue("Neighborhood: {Neighborhood}
-#                               Price per LotArea: {scales::dollar(total_sqft)}"))
-```
-
-```{r}
-boston_geo <- geocode("Boston, USA")
-
-geo_plot_tbl %>%
-  plot_geo(locationmode = "USA-states") %>%
-    add_trace(
-      z = processed_key_tbl$total_sqft, 
-      locations = ~boston_geo$lon, ~boston_geo$lat, 
-      color = ~Neighborhood,
-      colors = "Blues",
-      colorbar = list(title = "Value")) %>%
-  
-    layout(
-      title = "Value by Boston Neighborhood", 
-      geo = list(scope = "usa", 
-                 projection = list(type = "albers usa"), 
-                 showlakes = TRUE, 
-                 lakecolor = toRGB("white")))
-
-
-
-# LAT = 42.361145
-# LNG = -71.057083
-```
