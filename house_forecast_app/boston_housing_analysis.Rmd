@@ -1,0 +1,199 @@
+---
+title: "Boston Housing Analysis"
+output: 
+  flexdashboard::flex_dashboard:
+    theme:
+      bg: "#101010"
+      fg: "#FDF7F7" 
+      primary: "#ED79F9"
+      base_font:
+        google: Prompt
+      code_font:
+        google: JetBrains Mono
+    orientation: rows
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+# 1.0 LIBRARIES ------
+# Install thematic and un-comment for themed static plots (i.e., ggplot2)
+# thematic::thematic_rmd()
+library(flexdashboard)
+library(shiny)
+library(shinyjs)
+library(shinyWidgets)
+
+# Core
+library(caret)
+library(lubridate)
+library(tidyverse)
+library(tidyquant)
+library(tidyr)
+library(tibble)
+
+# Visualization
+library(plotly)
+library(ggmap)
+library(corrplot)
+
+# Modeling
+library(parsnip)
+library(xgboost)
+library(cluster)
+library(timetk)
+
+# Database
+library(odbc)
+library(RSQLite)
+
+source("04_demand_forecast.R")
+```
+
+
+```{css}
+.bootstrap-switch, .bootstrap-switch-handle-on,
+.bootstrap-switch, .bootstrap-switch-handle-off,
+.bootstrap-switch, .bootstrap-switch-label {
+    display: inline-block;
+    vertical-align: baseline;
+}
+```
+
+
+```{r}
+# 2.0 DATA ------
+con <- dbConnect(RSQLite::SQLite(), "house_data.db")
+# con <- dbConnect(RSQLite::SQLite(), "00_data/house_data.db")
+
+key_tbl <- tbl(con, "key_data") %>% collect()
+
+
+processed_data_tbl <- key_tbl %>%
+  mutate(price_sqft = ifelse(is.na(SalePrice) | is.na(LotArea), 0, SalePrice / LotArea)) %>%
+  mutate(date = make_date(YrSold, MoSold)) %>%
+  select(date, price_sqft)
+
+dbDisconnect(con)
+```
+
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
+useShinyjs(rmd = TRUE)
+
+# Selecting Neighborhood
+pickerInput(inputId  = "picker_category_1", 
+            label    = h4("Neighborhood"),
+            choices  = sort(unique(train_tbl$Neighborhood)), 
+            selected = "Blmngtn")
+
+br()
+hr()
+br()
+
+pickerInput(inputId  = "picker_input_2", 
+            label    = h4("Number of clusters:"), 
+            choices  = c(3, 5, 7, 9, 11, 13, 15), 
+            selected = 5)
+
+
+actionButton(inputId = "apply", 
+             label = "Apply", 
+             icon = icon(name = "play", lib = "font-awesome"))
+
+actionButton("reset", label = "Reset", icon = icon("sync"))
+
+observeEvent(eventExpr = input$reset, handlerExpr = {
+  
+  updateTextInput(session = session, 
+                  inputId = "picker_category_1", 
+                  selected = "Blmngtn")
+  
+  updatePickerInput(session = session, 
+                    inputId = "picker_category_2", 
+                    selected = 5)
+
+  delay(ms = 300, expr = {
+    click(id = "apply")
+  })
+  
+})
+```
+
+Column {data-width=650 .tabset}
+-----------------------------------------------------------------------
+
+### K-means Clustering
+
+```{r}
+# Define UI elements for k-means clustering
+# new_cluster_tbl <- eventReactive(eventExpr = input$apply, valueExpr = {
+#   
+#   server_kmeans(
+#     cluster_model = input$text_bike_model, 
+#     category_1 = bike_type(), 
+#     frame_material = input$picker_frame_material, 
+#     .ml_model = model_xgboost)
+#   
+# }, ignoreNULL = FALSE)
+```
+
+### Generalized Linear Model (GLM)
+
+```{r}
+
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Accuracy
+
+```{r}
+
+```
+
+### By Neighborhood
+
+```{r}
+key_data <- key_data %>% 
+  mutate(Neighborhood_Category = case_when(
+    Neighborhood %in% c("CollgCr", "Veenker", "Crawfor", "Somerst", "NridgHt", "Gilbert", "StoneBr") ~ "High Value",
+    Neighborhood %in% c("Mitchel", "NWAmes", "OldTown", "BrkSide", "Sawyer", "Edwards") ~ "Medium Value",
+    Neighborhood %in% c("NoRidge", "IDOTRR", "NAmes", "SawyerW", "ClearCr", "MeadowV") ~ "Low Value",
+    TRUE ~ "Other"
+  ))
+# geo_plot_tbl <- processed_key_tbl %>% 
+#   group_by(Neighborhood) %>%
+#   summarise(total_sqft = sum(price_sqft)) %>%
+#   ungroup() %>%
+#   mutate(label_text = str_glue("Neighborhood: {Neighborhood}
+#                               Price per LotArea: {scales::dollar(total_sqft)}"))
+```
+
+```{r}
+boston_geo <- geocode("Boston, USA")
+
+geo_plot_tbl %>%
+  plot_geo(locationmode = "USA-states") %>%
+    add_trace(
+      z = processed_key_tbl$total_sqft, 
+      locations = ~boston_geo$lon, ~boston_geo$lat, 
+      color = ~Neighborhood,
+      colors = "Blues",
+      colorbar = list(title = "Value")) %>%
+  
+    layout(
+      title = "Value by Boston Neighborhood", 
+      geo = list(scope = "usa", 
+                 projection = list(type = "albers usa"), 
+                 showlakes = TRUE, 
+                 lakecolor = toRGB("white")))
+
+
+
+# LAT = 42.361145
+# LNG = -71.057083
+```
