@@ -1,0 +1,222 @@
+---
+title: "Boston Housing"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    css: css/styles-dark.css
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+# 1.0 LIBRARIES ------
+# Install thematic and un-comment for themed static plots (i.e., ggplot2)
+# thematic::thematic_rmd()
+library(flexdashboard)
+library(shiny)
+library(shinyjs)
+library(shinyWidgets)
+
+# Core
+library(caret)
+library(lubridate)
+library(tidyverse)
+library(tidyquant)
+library(tidyr)
+library(tibble)
+
+# Visualization
+library(plotly)
+library(ggmap)
+library(corrplot)
+
+# Modeling
+library(parsnip)
+library(xgboost)
+library(cluster)
+library(timetk)
+
+# Database
+library(odbc)
+library(RSQLite)
+
+source("house_forecast_app/04_demand_forecast.R")
+source("00_model/kmeans.R")
+```
+
+
+```{css}
+.bootstrap-switch, .bootstrap-switch-handle-on,
+.bootstrap-switch, .bootstrap-switch-handle-off,
+.bootstrap-switch, .bootstrap-switch-label {
+    display: inline-block;
+    vertical-align: baseline;
+}
+```
+
+
+```{r}
+# 2.0 DATA ------
+con <- dbConnect(RSQLite::SQLite(), "00_data/house_data.db")
+# con <- dbConnect(RSQLite::SQLite(), "house_data.db")
+
+main_data <- tbl(con, "key_data") %>% collect()
+
+main_data <- main_data %>% 
+  mutate(price_sqft = ifelse(is.na(SalePrice) | is.na(LotArea), 0, SalePrice / LotArea))
+
+processed_data_tbl <- main_data %>%
+  mutate(date = make_date(YrSold, MoSold)) %>%
+  select(date, price_sqft)
+
+
+dbDisconnect(con)
+```
+
+
+```{r}
+ui <- fluidPage(
+  titlePanel("NJIT | DS636 Final Project"),
+  
+  fluidRow(
+    column(width = 6,
+           h3("K-means Clustering"),
+           shinyWidgets::radioGroupButtons(
+             inputId  = "select_k", 
+             label    = "Select K", 
+             choices  = c(3, 5, 7, 9, 11), 
+             selected = 5, 
+             status   = "primary", 
+             justified = TRUE, 
+             checkIcon = list(
+               yes = icon("ok", lib = "glyphicon"), 
+               no  = NULL
+             )
+           ),
+           actionButton("reset_k", "Reset K"), # Add the reset button for K-means
+           plotlyOutput("plotly_1")
+    ),
+    column(width = 6,
+           h3("Generalized Linear Model (GLM)"),
+           shinyWidgets::radioGroupButtons(
+             inputId  = "time_unit", 
+             label    = "Forecast Prediction", 
+             choices  = c("D" = "day", 
+                          "W" = "week", 
+                          "M" = "month", 
+                          "Q" = "quarter", 
+                          "Y" = "year"), 
+             selected = "month", 
+             status   = "primary", 
+             justified = TRUE, 
+             checkIcon = list(
+               yes = icon("ok", lib = "glyphicon"), 
+               no  = NULL
+             )
+           ),
+           checkboxInput("forecast_mode", "Enable Forecast Mode", value = FALSE),
+           numericInput("length_out", "Forecast Value", value = 12, min = 1, max = 100),
+           actionButton("reset_glm", "Reset GLM"), # Add the reset button for GLM
+           plotlyOutput("plotly_2")
+    )
+  )
+)
+
+```
+
+
+```{r}
+server <- function(input, output) {
+  
+  # Define key_tbl and scaled_data inside the server function
+  key_tbl <- main_data %>%
+    select(SalePrice, price_sqft)
+  
+  scaled_data <- scale(key_tbl)
+  
+  kmeans_plot <- reactiveVal()
+  
+  # Observe changes in the select_k input and update the k-means plot
+  observeEvent(input$select_k, {
+    kmeans_plot(render_kmeans(input_k_value = input$select_k, key_tbl = key_tbl, scaled_data = scaled_data))
+  })
+  
+  output$plotly_1 <- renderPlotly({
+    kmeans_plot()
+  })
+  
+  time_plot_tbl <- reactive({
+    aggregate_time_series(processed_data_tbl, time_unit = input$time_unit)
+  }) # Close the reactive expression here
+
+  time_plot_predictions_tbl <- reactive({
+    if (input$forecast_mode) {
+      time_plot_tbl() %>% 
+        generate_forecast(length_out = input$length_out, seed = 123)
+    } else {
+      NULL
+    }
+  })
+
+  observeEvent(input$forecast_mode, {
+    req(input$forecast_mode) # Ensures that input$forecast_mode is available before executing the code
+  })
+  
+  output$plotly_2 <- renderPlotly({
+    if (!is.null(time_plot_predictions_tbl())) {
+      p <- time_plot_predictions_tbl() %>%
+        plot_forecast()
+    } else {
+      p <- time_plot_tbl() %>%
+        plot_time_series()
+    }
+    
+    p %>% 
+      layout(margin = list(b = 200))
+  })
+  
+    # Observe reset_k button and reset the select_k input to the default value
+  observeEvent(input$reset_k, {
+    updateRadioGroupButtons(session, "select_k", selected = 5)
+  })
+
+  # Observe reset_glm button and reset the time_unit, forecast_mode, and length_out inputs to their default values
+  observeEvent(input$reset_glm, {
+    updateRadioGroupButtons(session, "time_unit", selected = "month")
+    updateCheckboxInput(session, "forecast_mode", value = FALSE)
+    updateNumericInput(session, "length_out", value = 12)
+    
+    # Invalidate the reactive values to force re-rendering of the plot
+    time_plot_tbl(NULL) # Invalidate time_plot_tbl
+    time_plot_predictions_tbl(NULL) # Invalidate time_plot_predictions_tbl
+  })
+  
+}
+
+tags$style("
+  .footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    background-color: #f5f5f5;
+    text-align: center;
+    padding: 10px;
+  }
+  .footer p {
+    margin-top: 5px;
+  }
+")
+
+
+tags$footer(
+    class = "footer",
+    p("Created by: Arnold Brillo, 
+      Justin Nietzer, 
+      Kang Song, 
+      and William Duggan")
+)
+
+shinyApp(ui = ui, server = server)
+```
+
