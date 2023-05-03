@@ -1,3 +1,49 @@
+generate_forecast_glmnet <- function(data, length_out = 365, seed = NULL, 
+                                     penalty = 1, mixture = 0.5) {
+  
+  strain_tbl <- data %>% 
+    tk_augment_timeseries_signature()
+  
+  sfuture_data_tbl <- data %>%
+    tk_index() %>%
+    tk_make_future_timeseries(length_out = length_out) %>%
+    tk_get_timeseries_signature() 
+  
+  time_scale <- data %>%
+    tk_index() %>%
+    tk_get_timeseries_summary() %>%
+    pull(scale)
+  
+  if (time_scale == "year") {
+    
+    model <- linear_reg(mode = "regression") %>%
+      set_engine(engine = "lm") %>%
+      fit.model_spec(total_sqft ~ ., data = strain_tbl %>% select(total_sqft, index.num))
+    
+  } else {
+    model <- linear_reg(mode = "regression", penalty = penalty, mixture = mixture) %>%
+      set_engine("glmnet") %>%
+      fit.model_spec(total_sqft ~ ., data = strain_tbl %>% select(-date, -label_text, -diff))
+  }
+  
+  
+  prediction_tbl <- predict(model, new_data = future_data_tbl) %>%
+    bind_cols(future_data_tbl) %>%
+    select(.pred, index) %>%
+    rename(total_sales = .pred, 
+           date        = index) %>%
+    mutate(label_text = str_glue("Date: {date}
+                                 Revenue: {scales::dollar(total_sales)}")) %>%
+    add_column(key = "Prediction")
+  
+  output_tbl <- data %>%
+    add_column(key = "Actual") %>%
+    bind_rows(prediction_tbl) 
+  
+  return(output_tbl)
+}
+
+
 plot_prediction <- function(processed_train_tbl) {
   
   selected_vars <- c("MoSold", "YrSold", "YearBuilt", "YearRemodAdd", "LotArea", "price_sqft", "SalePrice", "OverallCond", "OverallQual")
@@ -25,41 +71,4 @@ plot_prediction <- function(processed_train_tbl) {
   ggplotly(g, tooltip = "text")
   
 }
-
-# --- Above is working ---
-# GLM model
-# library(plotly)
-# set.seed(123)
-# 
-# # Split data into 70/30 train and test sets
-# train_ind <- seq_len(nrow(key_tbl)) %>% 
-#   createDataPartition(p = 0.7, list = FALSE) 
-# 
-# train_glm <- key_tbl[train_ind, ]
-# test_glm <- key_tbl[-train_ind, ]
-# 
-# 
-# # Fit GLM to train
-# model_glm <- glm(SalePrice ~ ., 
-#                  data = train_glm[, -1], 
-#                  family = gaussian(link = "identity"))
-# 
-# # Make predictions
-# glm_preds <- predict(model_glm, 
-#                      newdata = test_glm[, -1], 
-#                      type = "response")
-# 
-# # Plot GLM
-# glm_plot_tbl <- data.frame(actual = test_glm$SalePrice, 
-#                            predicted = glm_preds)
-# 
-# ggplot(glm_plot_tbl, aes(x = actual, y = predicted)) +
-#   
-#   geom_point(alpha = 0.5) +
-#   
-#   geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "red") +
-#   labs(title = "GLM Model Prediction",
-#        x = "Actual Sale Price",
-#        y = "Predicted Sale Price")
-
 
