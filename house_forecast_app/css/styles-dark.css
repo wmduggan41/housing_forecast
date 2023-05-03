@@ -28,30 +28,18 @@ body {
 }
 
 
-/* SIDEBAR */
-.section.sidebar {
+.footer {
+    position: fixed;
+    bottom: 0;
     background-color: #090909;
-}
+    text-align: center;
+    padding: 10px;
+  }
 
-@media screen and (min-width: 767px) {
-    #dashboard-container {
-        padding-left: 350px !important;
-    }
-    
-    .sidebar {
-        width: 350px !important;
-    }
-}
+.footer p {
+    margin-top: 5px;
+  }
 
-
-@media screen and (max-width: 767px) {
-    .chart-shim {
-        overflow-y: scroll;
-    }
-    .level3:first-child { 
-      background-color: #090909;
-    }
-}
 
 
 
