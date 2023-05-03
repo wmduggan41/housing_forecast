@@ -41,26 +41,16 @@ library(odbc)
 library(RSQLite)
 
 source("demand_forecast.R")
-source("model_kmeans.R")
-```
-
-
-```{css}
-.bootstrap-switch, .bootstrap-switch-handle-on,
-.bootstrap-switch, .bootstrap-switch-handle-off,
-.bootstrap-switch, .bootstrap-switch-label {
-    display: inline-block;
-    vertical-align: baseline;
-}
+source("kmeans.R")
 ```
 
 
 ```{r}
 # 2.0 DATA ------
-con <- dbConnect(RSQLite::SQLite(), "house_data.db")
+con <- read.csv("data/wmd_house.csv") 
 # con <- dbConnect(RSQLite::SQLite(), "house_data.db")
 
-main_data <- tbl(con, "key_data") %>% collect()
+main_data <- con
 
 main_data <- main_data %>% 
   mutate(price_sqft = ifelse(is.na(SalePrice) | is.na(LotArea), 0, SalePrice / LotArea))
@@ -70,7 +60,7 @@ processed_data_tbl <- main_data %>%
   select(date, price_sqft)
 
 
-dbDisconnect(con)
+# dbDisconnect(con)
 ```
 
 
