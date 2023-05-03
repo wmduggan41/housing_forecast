@@ -2,7 +2,7 @@
 title: "Boston Housing"
 output: 
   flexdashboard::flex_dashboard:
-    orientation: rows
+    orientation: columns
     vertical_layout: fill
     css: css/styles-dark.css
 runtime: shiny
@@ -40,7 +40,8 @@ library(timetk)
 library(odbc)
 library(RSQLite)
 
-source("04_demand_forecast.R")
+source("demand_forecast.R")
+source("model_kmeans.R")
 ```
 
 
@@ -57,11 +58,12 @@ source("04_demand_forecast.R")
 ```{r}
 # 2.0 DATA ------
 con <- dbConnect(RSQLite::SQLite(), "house_data.db")
-# con <- dbConnect(RSQLite::SQLite(), "00_data/house_data.db")
+# con <- dbConnect(RSQLite::SQLite(), "house_data.db")
 
-main_data <- tbl(con, "key_data") 
+main_data <- tbl(con, "key_data") %>% collect()
 
-main_data %>% mutate(price_sqft = ifelse(is.na(SalePrice) | is.na(LotArea), 0, SalePrice / LotArea))
+main_data <- main_data %>% 
+  mutate(price_sqft = ifelse(is.na(SalePrice) | is.na(LotArea), 0, SalePrice / LotArea))
 
 processed_data_tbl <- main_data %>%
   mutate(date = make_date(YrSold, MoSold)) %>%
@@ -71,323 +73,150 @@ processed_data_tbl <- main_data %>%
 dbDisconnect(con)
 ```
 
-Column {.sidebar}
------------------------------------------------------------------------
 
 ```{r}
-useShinyjs(rmd = TRUE)
-
-dateRangeInput(
-  inputId = "date_range", 
-  label   = h4("Date Range"),
-  start   = min(processed_data_tbl$date), 
-  end     = max(processed_data_tbl$date), 
-  min     = min(processed_data_tbl$date), 
-  max     = max(processed_data_tbl$date), 
-  startview = "month")
-
-# Selecting Neighborhood
-pickerInput(inputId  = "picker_category_1", 
-            label    = h4("Neighborhood"),
-            choices  = sort(unique(main_data$Neighborhood)), 
-            selected = "Blmngtn")
-
-br()
-hr()
-br()
-
-# Selecting Neighborhood
-pickerInput(inputId  = "picker_category_2", 
-            label    = h4("Building Type"),
-            choices  = sort(unique(main_data$BldgType)), 
-            selected = "1Fam")
-
-br()
-hr()
-br()
-
-h4("Forecast Mode")
-switchInput(
-  inputId     = "forecast_mode",
-  value       = FALSE, 
-  onStatus    = "success", 
-  onLabel     = "On", 
-  offLabel    = "Off",
-  handleWidth = 80,
-  labelWidth  = 80, 
-  inline      = TRUE, 
-  width       = "150px")
-
-conditionalPanel(condition = "input.forecast_mode == 1", 
-                 numericInput(inputId = "length_out", 
-                              label   = "Forecast Horizon", 
-                              value   = 12, 
-                              min     = 1))
-
-# APPLY BUTTONS
-actionButton(inputId = "apply", label = "Apply", icon = icon("play"))
-
-actionButton(inputId = "reset", label = "Reset", icon = icon("sync"))
-
-observeEvent(eventExpr = input$reset, handlerExpr = {
+ui <- fluidPage(
+  titlePanel("NJIT | DS636 Final Project"),
   
-  updatePickerInput(
-    session  = session, 
-    inputId  = "picker_category_1", 
-    selected = unique(processed_data_tbl$category_1))
-  
-  updatePickerInput(
-    session = session, 
-    inputId = "picker_category_2", 
-    selected = unique(processed_data_tbl$category_2))
-
-  updateDateRangeInput(
-    session = session, 
-    inputId = "date_range", 
-    start   = min(processed_data_tbl$date), 
-    end     = max(processed_data_tbl$date))
-  
-  updateRadioGroupButtons(
-    session = session, 
-    inputId = "time_unit", 
-    selected = "month"
-  )
-  
-  updateSwitchInput(
-    session = session, 
-    inputId = "forecast_mode",
-    value   = FALSE
-  )
-  
-  updateNumericInput(
-    session = session, 
-    inputId = "length_out", 
-    value   = 12)
-  
-  shinyjs::delay(ms = 300, expr = {
-    shinyjs::click(id = "apply")
-  })
- 
-  
-})
-
-# Sanity check -----
-# renderPrint(input$date_range)
-
-# renderPrint(input$picker_category_2)
-
-# renderText(input$checkbox_category_1)
-```
-
-```{r}
-processed_data_filtered_tbl <- eventReactive(
-  eventExpr = input$apply, 
-                                             
-  valueExpr = {
-  
-    processed_data_tbl %>%
-      
-      filter(date %>% between(left  = input$date_range[1], 
-                              right = input$date_range[2])) %>%
-  
-      filter(category_1 %in% input$checkbox_category_1) %>%
-      
-      filter(category_2 %in% input$picker_category_2)
-
-  },
-  ignoreNULL = FALSE
-)
-```
-
-
-Row {data-height=150}
------------------------------------------------------------------------
-
-```{r}
-summary_values_tbl <- reactive({
-
-   processed_data_filtered_tbl() %>%
-
-     summarize(
-       health_metric = unique(LotArea) %>% length(),
-       wealth_metric = sum(SalePrice),
-       wise_metric   = (sum(str_detect(SalePrice)) / (sum(str_detect(LotArea)) + 0.0001)) %>%
-         round(1)
-     )
-
- })
-
- renderPrint(summary_values_tbl())
-```
-
-### Lot Size
-
-```{r}
-renderValueBox({
-  
-  valueBox(
-    value   = summary_values_tbl()$health_metric %>% scales::comma(), 
-    caption = "Lot Size", 
-    icon    = "", 
-    color   = case_when(summary_values_tbl()$health_metric > 10000 ~ "success",
-                        summary_values_tbl()$health_metric > 6000 ~ "warning",
-                        TRUE ~ "danger"))
-  
-})
-```
-
-### Total Sale Price
-
-```{r}
-renderValueBox({
-  
-  valueBox(
-    value   = summary_values_tbl()$wealth_metric %>% scales::dollar(scale = 1e-6, suffix = "M", accuracy = 0.1), 
-    caption = "Total Sale", 
-    icon    = "fa-money-check-alt", 
-    color   = case_when(summary_values_tbl()$wealth_metric < 5e6 ~ "danger",
-                        summary_values_tbl()$wealth_metric < 10e6 ~ "warning",
-                        TRUE ~ "success"))
-  
-})
-```
-
-
-```{r}
-renderValueBox({
-  
-  valueBox(
-    value   = summary_values_tbl()$wise_metric, 
-    caption = "Ratio, Price per sqft", 
-    icon    = "fa-brain", 
-    color   = case_when(summary_values_tbl()$wise_metric > 0.5 ~ "warning",
-                        summary_values_tbl()$wise_metric > 2.5 ~ "success",
-                        TRUE ~ "warning"))
-  
-})
-```
-
-
-Column {data-width=350}
----------------------------------------------------------------
-
-### K-means Clustering
-
-```{r}
-# output$plotly_1 <- renderPlotly({
-#
-# ui <- fluidPage(
-#   titlePanel("Interactive K-means Clustering"),
-#   
-#   sidebarLayout(
-#     sidebarPanel(
-#       selectInput("k_value",
-#                   "Number of Clusters:",
-#                   choices = c(3, 5, 7, 9),
-#                   selected = 3)
-#     ),
-#     
-#     mainPanel(
-#       plotlyOutput("kmeans_plot")
-#     )
-#   )
-# )
-# 
-# shinyApp(ui = ui, server = render_kmeans)
-#plotlyOutput(outputId = "plotly_1")
-```
-
-Column {data-width=350}
----------------------------------------------------------------
-
-### Generalized Linear Model (GLM)
-
-```{r}
-shinyWidgets::radioGroupButtons(
-  inputId  = "time_unit", 
-  label    = "Time Unit", 
-  choices  = c("D" = "day", "W" = "week", "M" = "month", "Q" = "quarter", "Y" = "year"), 
-  selected = "month", 
-  status   = "primary", 
-  justified = TRUE, 
-  checkIcon = list(
-    yes = icon("ok", lib = "glyphicon"), 
-    no  = NULL
+  fluidRow(
+    column(width = 6,
+           h3("K-means Clustering"),
+           shinyWidgets::radioGroupButtons(
+             inputId  = "select_k", 
+             label    = "Select K", 
+             choices  = c(3, 5, 7, 9, 11), 
+             selected = 5, 
+             status   = "primary", 
+             justified = TRUE, 
+             checkIcon = list(
+               yes = icon("ok", lib = "glyphicon"), 
+               no  = NULL
+             )
+           ),
+           actionButton("reset_k", "Reset K"), # Add the reset button for K-means
+           plotlyOutput("plotly_1")
+    ),
+    column(width = 6,
+           h3("Generalized Linear Model (GLM)"),
+           shinyWidgets::radioGroupButtons(
+             inputId  = "time_unit", 
+             label    = "Forecast Prediction", 
+             choices  = c("D" = "day", 
+                          "W" = "week", 
+                          "M" = "month", 
+                          "Q" = "quarter", 
+                          "Y" = "year"), 
+             selected = "month", 
+             status   = "primary", 
+             justified = TRUE, 
+             checkIcon = list(
+               yes = icon("ok", lib = "glyphicon"), 
+               no  = NULL
+             )
+           ),
+           checkboxInput("forecast_mode", "Enable Forecast Mode", value = FALSE),
+           numericInput("length_out", "Forecast Value", value = 12, min = 1, max = 100),
+           actionButton("reset_glm", "Reset GLM"), # Add the reset button for GLM
+           plotlyOutput("plotly_2")
     )
+  )
 )
 
-observeEvent(eventExpr = input$time_unit, {
-  
-  if (input$forecast_mode) {
-    delay(300, click(id = "apply"))
-  }
-  
-})
-
-observeEvent(eventExpr = input$forecast_mode, {
-  
-    delay(300, click(id = "apply"))
-  
-}, once = TRUE)
-```
-
-```{r}
-time_plot_tbl <- reactive({
-  
-  processed_data_filtered_tbl() %>% 
-    aggregate_time_series(time_unit = input$time_unit)
-  
-})
-  
-time_plot_predictions_tbl <- eventReactive(eventExpr = input$apply, {
-  
-  if (input$forecast_mode) {
-    time_plot_tbl() %>% 
-      generate_forecast(n_future = input$n_future, seed = 123)
-  }
-  
-})
-
-#renderPrint(time_plot_predictions_tbl())
-
-output$plotly_2 <- renderPlotly({
-  
-  if (input$forecast_mode) {
-    p <- time_plot_predictions_tbl() %>%
-      plot_forecast()
-  } else {
-    p <- time_plot_tbl() %>%
-      plot_time_series()
-  }
-  
-  p %>% 
-    layout(margin = list(b = 200))
-
-})
-
-plotlyOutput(outputId = "plotly_2")
 ```
 
 
-Row {data-height=150}
------------------------------------------------------------------------
-
-### Neighborhood 
-
 ```{r}
-boston_location <- function(input, output) {
+server <- function(input, output) {
+  
+  # Define key_tbl and scaled_data inside the server function
+  key_tbl <- main_data %>%
+    select(SalePrice, price_sqft)
+  
+  scaled_data <- scale(key_tbl)
+  
+  kmeans_plot <- reactiveVal()
+  
+  # Observe changes in the select_k input and update the k-means plot
+  observeEvent(input$select_k, {
+    kmeans_plot(render_kmeans(input_k_value = input$select_k, key_tbl = key_tbl, scaled_data = scaled_data))
+  })
+  
+  output$plotly_1 <- renderPlotly({
+    kmeans_plot()
+  })
+  
+  time_plot_tbl <- reactive({
+    aggregate_time_series(processed_data_tbl, time_unit = input$time_unit)
+  }) # Close the reactive expression here
 
-  main_data <- data.frame(Neighborhood = c("A", "B", "C", "D", "E"))
-
-  neighborhood_data <- reactive({
-    main_data$Neighborhood
+  time_plot_predictions_tbl <- reactive({
+    if (input$forecast_mode) {
+      time_plot_tbl() %>% 
+        generate_forecast(length_out = input$length_out, seed = 123)
+    } else {
+      NULL
+    }
   })
 
-  output$neighborhoodOutput <- renderPrint({
-    neighborhood_data()
+  observeEvent(input$forecast_mode, {
+    req(input$forecast_mode) # Ensures that input$forecast_mode is available before executing the code
   })
+  
+  output$plotly_2 <- renderPlotly({
+    if (!is.null(time_plot_predictions_tbl())) {
+      p <- time_plot_predictions_tbl() %>%
+        plot_forecast()
+    } else {
+      p <- time_plot_tbl() %>%
+        plot_time_series()
+    }
+    
+    p %>% 
+      layout(margin = list(b = 200))
+  })
+  
+    # Observe reset_k button and reset the select_k input to the default value
+  observeEvent(input$reset_k, {
+    updateRadioGroupButtons(session, "select_k", selected = 5)
+  })
+
+  # Observe reset_glm button and reset the time_unit, forecast_mode, and length_out inputs to their default values
+  observeEvent(input$reset_glm, {
+    updateRadioGroupButtons(session, "time_unit", selected = "month")
+    updateCheckboxInput(session, "forecast_mode", value = FALSE)
+    updateNumericInput(session, "length_out", value = 12)
+    
+    # Invalidate the reactive values to force re-rendering of the plot
+    time_plot_tbl(NULL) # Invalidate time_plot_tbl
+    time_plot_predictions_tbl(NULL) # Invalidate time_plot_predictions_tbl
+  })
+  
 }
 
-renderPrint(input$picker_category_1)
+tags$style("
+  .footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    background-color: #f5f5f5;
+    text-align: center;
+    padding: 10px;
+  }
+  .footer p {
+    margin-top: 5px;
+  }
+")
+
+
+tags$footer(
+    class = "footer",
+    p("Created by: Arnold Brillo, 
+      Justin Nietzer, 
+      Kang Song, 
+      and William Duggan")
+)
+
+shinyApp(ui = ui, server = server)
 ```
 
