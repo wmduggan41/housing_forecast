@@ -1,3 +1,32 @@
+render_kmeans <- 
+function(input, output) {
+    
+    output$kmeans_plot <- renderPlotly({
+        
+        # Perform k-means clustering with selected k value
+        kmeans_model <- kmeans(scaled_data, centers=input$k_value)
+        
+        # Add cluster assignments to the data
+        key_tbl$cluster <- factor(kmeans_model$cluster)
+        
+        # Create ggplot object
+        p2 <- ggplot(key_tbl, aes(x = SalePrice, y = price_sqft, color = cluster)) + 
+            geom_point() + 
+            labs(title = paste("K-means Clustering (k =", input$k_value, ")"), 
+                 x = "Sale Price", 
+                 y = "Price per sqft", 
+                 color = "Cluster") + 
+            theme_minimal() +
+            scale_x_continuous(labels = scales::dollar_format(prefix = "$", scale = 1)) +
+            scale_y_continuous(labels = scales::dollar_format(prefix = "$", scale = 1))
+        
+        # Convert ggplot object to plotly object for interactivity
+        ggplotly(p2)
+        
+    })
+    
+}
+
 aggregate_time_series <-
 function(data, time_unit = "month") {
     
