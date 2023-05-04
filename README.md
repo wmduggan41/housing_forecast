@@ -10,8 +10,8 @@ This project was created to explore the Kaggle dataset [House_Prices](https://ww
 | Task | Status |
 |---------|--------|
 | 1 - Target Variables | Complete |
-| 2 - ML implementation | In progress |
-| 3 - Shiny Web App | Planned |
+| 2 - ML implementation | Complete |
+| 3 - Shiny Web App | Complete |
 
 
 ### <font color = "red">Objective:</font> 
